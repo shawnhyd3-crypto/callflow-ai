@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Phone, MessageSquare, Calendar, Zap, Users, TrendingUp, Shield, Clock, ArrowRight, Star, Check } from 'lucide-react'
 import { ReferralTracker } from '@/components/referral-tracker'
+import { DemoCallWidget } from '@/components/demo-call-widget'
 
 export default function LandingPage() {
   return (
@@ -159,6 +160,12 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="relative py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <DemoCallWidget />
         </div>
       </section>
 

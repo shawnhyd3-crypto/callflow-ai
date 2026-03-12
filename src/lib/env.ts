@@ -9,6 +9,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   VAPI_API_KEY: z.string().min(1),
   VAPI_WEBHOOK_SECRET: z.string().optional(),
+  VAPI_DEMO_ASSISTANT_ID: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_PUBLISHABLE_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
