@@ -13,29 +13,30 @@
     "generate": "prisma generate"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "next": "14.2.21",
-    "typescript": "^5.3.3",
+    "@auth/prisma-adapter": "^1.5.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@types/node": "^20.10.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/node": "^20.10.0",
-    "tailwindcss": "^3.4.1",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "@tailwindcss/forms": "^0.5.7",
+    "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
     "clsx": "^2.0.0",
-    "stripe": "^14.10.0",
-    "@prisma/client": "^5.7.0",
-    "prisma": "^5.7.0",
-    "next-auth": "4.24.11",
-    "@auth/prisma-adapter": "^1.5.0",
-    "zod": "^3.22.4",
     "lucide-react": "^0.294.0",
-    "axios": "^1.6.2"
+    "next": "14.2.21",
+    "next-auth": "4.24.11",
+    "postcss": "^8.4.32",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stripe": "^14.10.0",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@prisma/client": "^5.22.0",
     "eslint": "^8.55.0",
-    "eslint-config-next": "14.2.21"
+    "eslint-config-next": "14.2.21",
+    "prisma": "^5.22.0"
   }
 }

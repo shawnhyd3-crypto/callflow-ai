@@ -1,94 +1,135 @@
-'use client'
+import { Phone, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 
-import { BarChart3, Phone, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+function formatDuration(seconds: number) {
+  if (!seconds || Number.isNaN(seconds)) return '0m 0s'
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins}m ${secs}s`
+}
 
-export default function DashboardPage() {
-  // Mock data
+function timeAgo(date: Date) {
+  const diffMs = Date.now() - date.getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+  const days = Math.floor(hours / 24)
+  return `${days} day${days === 1 ? '' : 's'} ago`
+}
+
+export default async function DashboardPage() {
+  const org = await prisma.organization.findFirst()
+  if (!org) {
+    return (
+      <div className="card">
+        <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
+        <p className="text-slate-400">No organization found. Complete onboarding to see live metrics.</p>
+      </div>
+    )
+  }
+
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const [
+    totalCalls,
+    avgDuration,
+    appointmentsBooked,
+    urgentEscalations,
+    recentCallLogs,
+    agentsList,
+    usageRecord,
+    callsTodayLogs,
+  ] = await Promise.all([
+    prisma.callLog.count({
+      where: { organizationId: org.id, startTime: { gte: startOfMonth } },
+    }),
+    prisma.callLog.aggregate({
+      where: { organizationId: org.id, startTime: { gte: startOfMonth } },
+      _avg: { duration: true },
+    }),
+    prisma.appointment.count({
+      where: { organizationId: org.id, createdAt: { gte: startOfMonth } },
+    }),
+    prisma.callLog.count({
+      where: { organizationId: org.id, outcome: 'escalated', startTime: { gte: startOfMonth } },
+    }),
+    prisma.callLog.findMany({
+      where: { organizationId: org.id },
+      orderBy: { startTime: 'desc' },
+      take: 5,
+    }),
+    prisma.phoneAgent.findMany({
+      where: { organizationId: org.id },
+      orderBy: { createdAt: 'asc' },
+      take: 5,
+    }),
+    prisma.usageRecord.findFirst({
+      where: { organizationId: org.id },
+      orderBy: { billingPeriodStart: 'desc' },
+    }),
+    prisma.callLog.findMany({
+      where: { organizationId: org.id, startTime: { gte: startOfDay } },
+      select: { agentId: true },
+    }),
+  ])
+
+  const callsTodayByAgent = callsTodayLogs.reduce<Record<string, number>>((acc, call) => {
+    acc[call.agentId] = (acc[call.agentId] || 0) + 1
+    return acc
+  }, {})
+
   const stats = [
     {
       label: 'Total Calls This Month',
-      value: '324',
-      change: '+12%',
+      value: totalCalls.toString(),
+      change: '',
       icon: Phone,
     },
     {
       label: 'Average Call Duration',
-      value: '3m 24s',
-      change: '+5%',
+      value: formatDuration(avgDuration._avg.duration || 0),
+      change: '',
       icon: Clock,
     },
     {
       label: 'Appointments Booked',
-      value: '47',
-      change: '+23%',
+      value: appointmentsBooked.toString(),
+      change: '',
       icon: TrendingUp,
     },
     {
       label: 'Urgent Escalations',
-      value: '12',
-      change: '-8%',
+      value: urgentEscalations.toString(),
+      change: '',
       icon: AlertCircle,
     },
   ]
 
-  const recentCalls = [
-    {
-      id: 1,
-      caller: '+1 (555) 123-4567',
-      duration: '4m 32s',
-      status: 'completed',
-      outcome: 'booked',
-      time: '2 hours ago',
-    },
-    {
-      id: 2,
-      caller: '+1 (555) 234-5678',
-      duration: '2m 15s',
-      status: 'completed',
-      outcome: 'handled',
-      time: '3 hours ago',
-    },
-    {
-      id: 3,
-      caller: '+1 (555) 345-6789',
-      duration: '5m 12s',
-      status: 'completed',
-      outcome: 'escalated',
-      time: '4 hours ago',
-    },
-    {
-      id: 4,
-      caller: '+1 (555) 456-7890',
-      duration: '1m 45s',
-      status: 'missed',
-      outcome: 'voicemail',
-      time: '5 hours ago',
-    },
-  ]
+  const recentCalls = recentCallLogs.map((call) => ({
+    id: call.id,
+    caller: call.phoneNumber,
+    duration: formatDuration(call.duration),
+    status: call.status,
+    outcome: call.outcome ?? 'handled',
+    time: timeAgo(call.startTime),
+  }))
 
-  const agents = [
-    {
-      id: 1,
-      name: 'Main Receptionist',
-      status: 'active',
-      callsToday: 45,
-      template: 'General',
-    },
-    {
-      id: 2,
-      name: 'Appointment Scheduler',
-      status: 'active',
-      callsToday: 28,
-      template: 'Appointment Booking',
-    },
-    {
-      id: 3,
-      name: 'Support Agent',
-      status: 'inactive',
-      callsToday: 0,
-      template: 'FAQ Handler',
-    },
-  ]
+  const agents = agentsList.map((agent) => ({
+    id: agent.id,
+    name: agent.name,
+    status: agent.status,
+    callsToday: callsTodayByAgent[agent.id] || 0,
+    template: agent.templateId ? 'Template' : 'Custom',
+  }))
+
+  const minutesUsed = usageRecord?.minutesUsed ?? 0
+  const minutesLimit = usageRecord?.minutesLimit ?? 0
+  const minutesRemaining = Math.max(minutesLimit - minutesUsed, 0)
+  const usagePercent = minutesLimit > 0 ? Math.min((minutesUsed / minutesLimit) * 100, 100) : 0
 
   return (
     <div className="space-y-8">
@@ -116,7 +157,11 @@ export default function DashboardPage() {
                 </div>
                 <Icon className="w-8 h-8 text-primary-500 opacity-50" />
               </div>
-              <div className="text-sm text-emerald-400">{stat.change} from last month</div>
+              {stat.change ? (
+                <div className="text-sm text-emerald-400">{stat.change} from last month</div>
+              ) : (
+                <div className="text-sm text-slate-500">Updated just now</div>
+              )}
             </div>
           )
         })}
@@ -208,17 +253,21 @@ export default function DashboardPage() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-slate-400">Minutes Used</span>
-              <span className="font-semibold">234 / 500 minutes</span>
+              <span className="font-semibold">
+                {minutesLimit > 0 ? `${minutesUsed} / ${minutesLimit} minutes` : `${minutesUsed} minutes`}
+              </span>
             </div>
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-primary-600 to-accent-600 rounded-full"
-                style={{ width: '47%' }}
+                style={{ width: `${usagePercent}%` }}
               ></div>
             </div>
           </div>
           <p className="text-sm text-slate-400">
-            You have 266 minutes remaining. Upgrade to Pro for 500 minutes/month.
+            {minutesLimit > 0
+              ? `You have ${minutesRemaining} minutes remaining.`
+              : 'Set a usage limit in your billing settings to see remaining minutes.'}
           </p>
         </div>
       </div>

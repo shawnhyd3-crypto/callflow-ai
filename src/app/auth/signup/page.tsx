@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Mail, Lock, User, Building, ArrowRight } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function SignUpPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [agreed, setAgreed] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -26,13 +28,38 @@ export default function SignUpPage() {
     e.preventDefault()
     if (!agreed) return
 
-    setIsLoading(true)
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
 
-    // Placeholder for signup logic
-    setTimeout(() => {
+    setIsLoading(true)
+    setError(null)
+
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      setError(data.error ?? 'Unable to create account.')
       setIsLoading(false)
-      console.log('Sign up attempt:', formData)
-    }, 1000)
+      return
+    }
+
+    await signIn('credentials', {
+      email: formData.email,
+      password: formData.password,
+      callbackUrl: '/dashboard',
+    })
+
+    setIsLoading(false)
   }
 
   return (
@@ -133,6 +160,8 @@ export default function SignUpPage() {
               />
             </div>
           </div>
+
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           {/* Terms */}
           <label className="flex items-start space-x-3 text-sm">

@@ -3,22 +3,35 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Mail, Lock, ArrowRight } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Placeholder for authentication logic
-    // In production, integrate with NextAuth or your auth provider
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log('Sign in attempt:', { email, password })
-    }, 1000)
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: '/dashboard',
+    })
+
+    if (result?.error) {
+      setError('Invalid email or password.')
+    }
+
+    if (result?.ok) {
+      window.location.href = '/dashboard'
+    }
+
+    setIsLoading(false)
   }
 
   return (
@@ -67,6 +80,8 @@ export default function SignInPage() {
             </div>
           </div>
 
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
           {/* Remember & Forgot */}
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center space-x-2">
@@ -92,6 +107,16 @@ export default function SignInPage() {
             {!isLoading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
+
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+            className="w-full btn btn-secondary"
+          >
+            Continue with Google
+          </button>
+        </div>
 
         {/* Sign Up Link */}
         <div className="text-center mt-6">
