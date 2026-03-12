@@ -89,10 +89,10 @@ export default function AgentsPage() {
           <h1 className="text-3xl font-bold mb-2">AI Agents</h1>
           <p className="text-slate-400">Manage and configure your AI phone agents.</p>
         </div>
-        <button className="btn btn-primary flex items-center space-x-2">
+        <a href="/dashboard/agents/new" className="btn btn-primary flex items-center space-x-2">
           <Plus className="w-4 h-4" />
           <span>Create Agent</span>
-        </button>
+        </a>
       </div>
 
       {/* Agent Cards */}
