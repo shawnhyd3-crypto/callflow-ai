@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe, getPlanMinutesLimit } from '@/lib/stripe'
+import { getUsageAlert } from '@/lib/usage'
 import { verifyWebhookSignature } from '@/lib/vapi'
 import { env } from '@/lib/env'
+import { publishLiveCallEvent } from '@/lib/vapi-live'
 
 /**
  * Vapi Webhook Handler
@@ -29,6 +31,17 @@ export async function POST(request: NextRequest) {
       message,
       callId: call?.id,
       phoneNumber: call?.phoneNumber,
+    })
+
+    publishLiveCallEvent({
+      type: message?.type ?? 'unknown',
+      callId: call?.id ?? null,
+      phoneNumber: call?.phoneNumber ?? phoneNumber ?? null,
+      transcript: message?.transcript ?? transcript ?? null,
+      sentiment: message?.sentiment ?? null,
+      durationSeconds: typeof call?.duration === 'number' ? call.duration : null,
+      startedAt: call?.startedAtTime ?? null,
+      receivedAt: new Date().toISOString(),
     })
 
     // Handle different message types
@@ -152,7 +165,7 @@ async function handleCallEnded(call: any, transcript: string) {
 
     const minutesLimit = getPlanMinutesLimit(plan)
 
-    await prisma.usageRecord.upsert({
+    const usageRecord = await prisma.usageRecord.upsert({
       where: {
         organizationId_billingPeriodStart: {
           organizationId: agent.organizationId,
@@ -173,6 +186,16 @@ async function handleCallEnded(call: any, transcript: string) {
         billingPeriodEnd: billingEnd,
       },
     })
+
+    const usageAlert = getUsageAlert(usageRecord.minutesUsed, usageRecord.minutesLimit)
+    if (usageAlert) {
+      console.warn('Usage alert triggered', {
+        organizationId: agent.organizationId,
+        level: usageAlert.level,
+        percent: usageAlert.percent,
+        threshold: usageAlert.threshold,
+      })
+    }
 
     if (subscription?.stripeSubscriptionId) {
       try {

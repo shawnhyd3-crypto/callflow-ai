@@ -7,8 +7,8 @@ import { STRIPE_PLANS } from '@/lib/stripe'
 
 const PLAN_LABELS = {
   starter: 'Starter',
-  pro: 'Pro',
-  business: 'Business',
+  pro: 'Growth',
+  business: 'Scale',
 } as const
 
 function formatCurrency(value: number) {
