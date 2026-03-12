@@ -1,14 +1,11 @@
 import axios from 'axios'
 import crypto from 'crypto'
-
-if (!process.env.VAPI_API_KEY) {
-  throw new Error('Missing VAPI_API_KEY environment variable')
-}
+import { env } from '@/lib/env'
 
 const vapiClient = axios.create({
   baseURL: 'https://api.vapi.ai',
   headers: {
-    'Authorization': `Bearer ${process.env.VAPI_API_KEY}`,
+    'Authorization': `Bearer ${env.VAPI_API_KEY}`,
     'Content-Type': 'application/json',
   },
 })

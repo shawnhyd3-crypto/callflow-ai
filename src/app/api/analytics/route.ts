@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { env } from '@/lib/env'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const DEFAULT_RANGE_DAYS = 30
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
   const avgDuration = totalCalls > 0 ? totalDuration / totalCalls : 0
   const answerRate = totalCalls > 0 ? answeredCalls / totalCalls : 0
 
-  const estimatedValue = Number(process.env.ESTIMATED_APPOINTMENT_VALUE_CENTS ?? 0)
+  const estimatedValue = env.ESTIMATED_APPOINTMENT_VALUE_CENTS ?? 0
   const revenueSavedCents = appointmentCount * (Number.isNaN(estimatedValue) ? 0 : estimatedValue)
 
   const outcomes = callLogs.reduce<Record<string, number>>((acc, call) => {

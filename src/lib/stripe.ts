@@ -1,10 +1,7 @@
 import Stripe from 'stripe'
+import { env } from '@/lib/env'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing STRIPE_SECRET_KEY environment variable')
-}
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
   typescript: true,
 })
@@ -23,13 +20,13 @@ export const STRIPE_PLANS = {
     ],
   },
   pro: {
-    name: 'Pro',
+    name: 'Growth',
     price: 149,
     minutesPerMonth: 500,
-    agents: 5,
+    agents: 3,
     features: [
       '500 minutes per month',
-      'Up to 5 AI agents',
+      'Up to 3 AI agents',
       'Advanced analytics',
       'Call transcripts',
       'Appointment scheduling',
@@ -37,13 +34,13 @@ export const STRIPE_PLANS = {
     ],
   },
   business: {
-    name: 'Business',
+    name: 'Scale',
     price: 349,
     minutesPerMonth: 2000,
-    agents: 'Unlimited',
+    agents: 10,
     features: [
-      '2000+ minutes per month',
-      'Unlimited AI agents',
+      '2000 minutes per month',
+      'Up to 10 AI agents',
       'Full analytics suite',
       'Custom integrations',
       'Dedicated account manager',
@@ -53,9 +50,15 @@ export const STRIPE_PLANS = {
 }
 
 export const STRIPE_PLAN_PRICE_IDS = {
-  starter: process.env.STRIPE_STARTER_PRICE_ID,
-  pro: process.env.STRIPE_PRO_PRICE_ID,
-  business: process.env.STRIPE_BUSINESS_PRICE_ID,
+  starter: env.STRIPE_STARTER_PRICE_ID,
+  pro: env.STRIPE_PRO_PRICE_ID,
+  business: env.STRIPE_BUSINESS_PRICE_ID,
+}
+
+export const STRIPE_PLAN_METERED_PRICE_IDS = {
+  starter: env.STRIPE_STARTER_METERED_PRICE_ID,
+  pro: env.STRIPE_PRO_METERED_PRICE_ID,
+  business: env.STRIPE_BUSINESS_METERED_PRICE_ID,
 }
 
 export function getPlanFromPriceId(priceId?: string | null) {
@@ -93,14 +96,24 @@ export async function createCheckoutSession({
     throw new Error(`Missing Stripe price ID for plan: ${plan}`)
   }
 
+  const meteredPriceId = STRIPE_PLAN_METERED_PRICE_IDS[plan]
+
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    {
+      price: priceId,
+      quantity: 1,
+    },
+  ]
+
+  if (meteredPriceId) {
+    lineItems.push({
+      price: meteredPriceId,
+    })
+  }
+
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
+    line_items: lineItems,
     mode: 'subscription',
     success_url: successUrl,
     cancel_url: cancelUrl,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { env } from '@/lib/env'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
-      return_url: returnUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://callflow-ai-blue.vercel.app',
+      return_url:
+        returnUrl || env.NEXT_PUBLIC_APP_URL || 'https://callflow-ai-blue.vercel.app',
     })
 
     return NextResponse.json({ url: portalSession.url })

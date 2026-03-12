@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe, getPlanMinutesLimit } from '@/lib/stripe'
 import { verifyWebhookSignature } from '@/lib/vapi'
+import { env } from '@/lib/env'
 
 /**
  * Vapi Webhook Handler
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text()
 
     const signature = request.headers.get('x-vapi-signature')
-    const secret = process.env.VAPI_WEBHOOK_SECRET
+    const secret = env.VAPI_WEBHOOK_SECRET
 
     if (secret) {
       const isValid = verifyWebhookSignature(signature, rawBody, secret)

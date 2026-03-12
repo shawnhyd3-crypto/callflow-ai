@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { stripe, getPlanFromPriceId } from '@/lib/stripe'
+import { env } from '@/lib/env'
 
 /**
  * Stripe Webhook Handler
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
-  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!signature || !env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json(
       { error: 'Missing signature or webhook secret' },
       { status: 400 }
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      env.STRIPE_WEBHOOK_SECRET
     )
   } catch (error) {
     console.error('Webhook signature verification failed:', error)
