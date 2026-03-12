@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { stripe } from '@/lib/stripe'
+import { stripe, getPlanFromPriceId } from '@/lib/stripe'
 
 /**
  * Stripe Webhook Handler
@@ -97,17 +97,22 @@ async function handleCheckoutSessionCompleted(
         limit: 1,
       })
 
-      const plan = session.metadata.plan || 'starter'
+      const planFromMetadata = session.metadata.plan
 
       if (subscription.data.length > 0) {
         const sub = subscription.data[0]
+        const priceId = sub.items.data[0]?.price?.id
+        const plan =
+          (planFromMetadata as 'starter' | 'pro' | 'business' | undefined) ||
+          getPlanFromPriceId(priceId) ||
+          'starter'
 
         // Update or create subscription record
         await prisma.subscription.upsert({
           where: { organizationId },
           update: {
             stripeSubscriptionId: sub.id,
-            plan: plan as 'starter' | 'pro' | 'enterprise',
+            plan: plan as 'starter' | 'pro' | 'business',
             status: sub.status as any,
             currentPeriodStart: new Date(sub.current_period_start * 1000),
             currentPeriodEnd: new Date(sub.current_period_end * 1000),
@@ -119,7 +124,7 @@ async function handleCheckoutSessionCompleted(
             organizationId,
             stripeCustomerId: customerId,
             stripeSubscriptionId: sub.id,
-            plan: plan as 'starter' | 'pro' | 'enterprise',
+            plan: plan as 'starter' | 'pro' | 'business',
             status: sub.status as any,
             currentPeriodStart: new Date(sub.current_period_start * 1000),
             currentPeriodEnd: new Date(sub.current_period_end * 1000),
@@ -149,8 +154,9 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription) {
 
     if (org) {
       // Determine plan from subscription items
-      let plan: 'starter' | 'pro' | 'enterprise' = 'starter'
-      // In production, map price IDs to plans
+      const priceId = subscription.items.data[0]?.price?.id
+      const mappedPlan = getPlanFromPriceId(priceId)
+      let plan: 'starter' | 'pro' | 'business' = mappedPlan || 'starter'
 
       await prisma.subscription.update({
         where: { organizationId: org.organizationId },

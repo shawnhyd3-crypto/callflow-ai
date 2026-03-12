@@ -12,7 +12,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export const STRIPE_PLANS = {
   starter: {
     name: 'Starter',
-    price: 29,
+    price: 49,
     minutesPerMonth: 100,
     agents: 1,
     features: [
@@ -24,7 +24,7 @@ export const STRIPE_PLANS = {
   },
   pro: {
     name: 'Pro',
-    price: 99,
+    price: 149,
     minutesPerMonth: 500,
     agents: 5,
     features: [
@@ -36,9 +36,9 @@ export const STRIPE_PLANS = {
       'Priority email support',
     ],
   },
-  enterprise: {
-    name: 'Enterprise',
-    price: 299,
+  business: {
+    name: 'Business',
+    price: 349,
     minutesPerMonth: 2000,
     agents: 'Unlimited',
     features: [
@@ -52,6 +52,28 @@ export const STRIPE_PLANS = {
   },
 }
 
+export const STRIPE_PLAN_PRICE_IDS = {
+  starter: process.env.STRIPE_STARTER_PRICE_ID,
+  pro: process.env.STRIPE_PRO_PRICE_ID,
+  business: process.env.STRIPE_BUSINESS_PRICE_ID,
+}
+
+export function getPlanFromPriceId(priceId?: string | null) {
+  if (!priceId) return null
+
+  const entries = Object.entries(STRIPE_PLAN_PRICE_IDS) as Array<[
+    'starter' | 'pro' | 'business',
+    string | undefined
+  ]>
+
+  const match = entries.find(([, id]) => id === priceId)
+  return match ? match[0] : null
+}
+
+export function getPlanMinutesLimit(plan: 'starter' | 'pro' | 'business') {
+  return STRIPE_PLANS[plan].minutesPerMonth
+}
+
 export async function createCheckoutSession({
   organizationId,
   customerId,
@@ -61,16 +83,11 @@ export async function createCheckoutSession({
 }: {
   organizationId: string
   customerId: string
-  plan: 'starter' | 'pro' | 'enterprise'
+  plan: 'starter' | 'pro' | 'business'
   successUrl: string
   cancelUrl: string
 }) {
-  const priceId =
-    plan === 'starter'
-      ? process.env.STRIPE_STARTER_PRICE_ID
-      : plan === 'pro'
-        ? process.env.STRIPE_PRO_PRICE_ID
-        : process.env.STRIPE_ENTERPRISE_PRICE_ID
+  const priceId = STRIPE_PLAN_PRICE_IDS[plan]
 
   if (!priceId) {
     throw new Error(`Missing Stripe price ID for plan: ${plan}`)

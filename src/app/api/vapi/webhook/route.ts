@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { stripe, getPlanMinutesLimit } from '@/lib/stripe'
 import { verifyWebhookSignature } from '@/lib/vapi'
 
 /**
@@ -137,6 +138,19 @@ async function handleCallEnded(call: any, transcript: string) {
     const billingStart = new Date(today.getFullYear(), today.getMonth(), 1)
     const billingEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 
+    const subscription = await prisma.subscription.findUnique({
+      where: { organizationId: agent.organizationId },
+    })
+
+    const plan =
+      subscription?.plan === 'business'
+        ? 'business'
+        : subscription?.plan === 'pro'
+          ? 'pro'
+          : 'starter'
+
+    const minutesLimit = getPlanMinutesLimit(plan)
+
     await prisma.usageRecord.upsert({
       where: {
         organizationId_billingPeriodStart: {
@@ -148,15 +162,42 @@ async function handleCallEnded(call: any, transcript: string) {
         minutesUsed: {
           increment: minutes,
         },
+        minutesLimit,
       },
       create: {
         organizationId: agent.organizationId,
         minutesUsed: minutes,
-        minutesLimit: 500, // Will vary by plan
+        minutesLimit,
         billingPeriodStart: billingStart,
         billingPeriodEnd: billingEnd,
       },
     })
+
+    if (subscription?.stripeSubscriptionId) {
+      try {
+        const stripeSubscription = await stripe.subscriptions.retrieve(
+          subscription.stripeSubscriptionId,
+          { expand: ['items.data.price'] }
+        )
+        const subscriptionItem =
+          stripeSubscription.items.data.find(
+            (item) => item.price.recurring?.usage_type === 'metered'
+          ) || stripeSubscription.items.data[0]
+
+        if (subscriptionItem) {
+          await stripe.subscriptionItems.createUsageRecord(
+            subscriptionItem.id,
+            {
+              quantity: minutes,
+              timestamp: Math.floor(Date.now() / 1000),
+              action: 'increment',
+            }
+          )
+        }
+      } catch (error) {
+        console.error('Error reporting Stripe usage:', error)
+      }
+    }
 
     console.log(`Call logged: ${callLog.id}, outcome: ${outcome}`)
   } catch (error) {

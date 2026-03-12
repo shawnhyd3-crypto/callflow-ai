@@ -198,7 +198,7 @@ model Subscription {
   organizationId  String   @unique
   stripeCustomerId String  @unique
   stripeSubscriptionId String?
-  plan            String   @default("starter") // starter, pro, enterprise
+  plan            String   @default("starter") // starter, pro, business
   status          String   @default("active") // active, cancelled, past_due
   currentPeriodStart DateTime
   currentPeriodEnd DateTime

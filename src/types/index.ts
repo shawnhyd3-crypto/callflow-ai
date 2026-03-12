@@ -76,7 +76,7 @@ export interface Subscription {
   organizationId: string
   stripeCustomerId: string
   stripeSubscriptionId?: string | null
-  plan: 'starter' | 'pro' | 'enterprise'
+  plan: 'starter' | 'pro' | 'business'
   status: 'active' | 'cancelled' | 'past_due'
   currentPeriodStart: Date
   currentPeriodEnd: Date

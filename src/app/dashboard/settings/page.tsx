@@ -121,7 +121,7 @@ export default function SettingsPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-bold mb-1">Pro Plan</h3>
-                  <p className="text-slate-400">$99/month</p>
+                  <p className="text-slate-400">$149/month</p>
                   <p className="text-sm text-slate-500 mt-2">500 minutes per month</p>
                 </div>
                 <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-sm font-semibold">
@@ -176,17 +176,17 @@ export default function SettingsPage() {
                   {[
                     {
                       date: '2024-03-01',
-                      amount: '$99.00',
+                      amount: '$149.00',
                       status: 'paid',
                     },
                     {
                       date: '2024-02-01',
-                      amount: '$99.00',
+                      amount: '$149.00',
                       status: 'paid',
                     },
                     {
                       date: '2024-01-01',
-                      amount: '$29.00',
+                      amount: '$49.00',
                       status: 'paid',
                     },
                   ].map((invoice, idx) => (
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                   Get More Phone Numbers
                 </h3>
                 <p className="text-sm text-slate-400">
-                  Upgrade to Pro or Enterprise to add more phone numbers.
+                  Upgrade to Pro or Business to add more phone numbers.
                   Each number can be assigned to a different agent.
                 </p>
               </div>

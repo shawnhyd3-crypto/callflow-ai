@@ -322,7 +322,7 @@ export default function LandingPage() {
             {[
               {
                 name: 'Starter',
-                price: '$29',
+                price: '$49',
                 minutes: '100 min/mo',
                 features: ['1 AI agent', 'Call logging', 'Basic analytics', 'Email support'],
                 highlight: false,
@@ -330,15 +330,15 @@ export default function LandingPage() {
               },
               {
                 name: 'Pro',
-                price: '$99',
+                price: '$149',
                 minutes: '500 min/mo',
                 features: ['Up to 5 AI agents', 'Full analytics', 'Call transcripts', 'Appointment booking', 'Priority support'],
                 highlight: true,
                 cta: 'Start Free Trial',
               },
               {
-                name: 'Enterprise',
-                price: '$299',
+                name: 'Business',
+                price: '$349',
                 minutes: '2,000+ min/mo',
                 features: ['Unlimited agents', 'Custom integrations', 'Analytics suite', 'Dedicated manager', '24/7 phone support'],
                 highlight: false,

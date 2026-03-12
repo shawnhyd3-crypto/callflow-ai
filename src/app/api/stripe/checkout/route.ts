@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!['starter', 'pro', 'enterprise'].includes(plan)) {
+    if (!['starter', 'pro', 'business'].includes(plan)) {
       return NextResponse.json(
         { error: 'Invalid plan' },
         { status: 400 }
