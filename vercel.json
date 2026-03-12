@@ -1,15 +1,6 @@
 {
   "version": 2,
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "VAPI_API_KEY": "@vapi_api_key",
-    "VAPI_WEBHOOK_SECRET": "@vapi_webhook_secret",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret"
-  },
-  "buildCommand": "npm run build",
+  "buildCommand": "npx prisma generate && npm run build",
   "devCommand": "npm run dev",
   "outputDirectory": ".next"
 }
