@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Phone,
   BarChart3,
+  BarChart2,
   Settings,
   PhoneIncoming,
   Bot,
@@ -20,6 +21,11 @@ export default function DashboardSidebar() {
       name: 'Dashboard',
       href: '/dashboard',
       icon: BarChart3,
+    },
+    {
+      name: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: BarChart2,
     },
     {
       name: 'Agents',
