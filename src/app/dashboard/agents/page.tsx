@@ -34,6 +34,53 @@ export default function AgentsPage() {
     },
   ])
 
+  const onboardingWizards = [
+    {
+      name: 'Plumber',
+      emoji: '🔧',
+      summary: 'Emergency dispatch + estimate scheduling',
+      steps: [
+        'Capture service type + urgency',
+        'Dispatch rules (after-hours + on-call)',
+        'Estimate scheduling + follow-up SMS',
+        'Pricing ranges + warranty FAQ',
+      ],
+    },
+    {
+      name: 'Dentist',
+      emoji: '🦷',
+      summary: 'Appointment booking + insurance FAQ',
+      steps: [
+        'Collect patient info + reason for visit',
+        'Schedule preferences + reminders',
+        'Insurance carrier + coverage FAQ',
+        'Pre-visit instructions + paperwork',
+      ],
+    },
+    {
+      name: 'Salon',
+      emoji: '✂️',
+      summary: 'Booking + cancellation policy',
+      steps: [
+        'Service selection + stylist preferences',
+        'Availability + deposit rules',
+        'Cancellation + no-show policy',
+        'Add-ons + upsell scripts',
+      ],
+    },
+    {
+      name: 'Restaurant',
+      emoji: '🍽️',
+      summary: 'Reservations + hours + menu FAQ',
+      steps: [
+        'Party size + seating preferences',
+        'Reservation windows + waitlist',
+        'Hours + holiday closures',
+        'Menu highlights + allergy FAQ',
+      ],
+    },
+  ]
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -148,6 +195,38 @@ export default function AgentsPage() {
               </p>
               <p className="text-xs text-slate-500 mt-2">Use template</p>
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Onboarding Wizards */}
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Setup Wizards</h2>
+        <p className="text-sm text-slate-400 mb-6">
+          Each wizard walks you through the exact setup for your vertical.
+        </p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {onboardingWizards.map((wizard) => (
+            <div key={wizard.name} className="card">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <span className="text-2xl">{wizard.emoji}</span>
+                    {wizard.name}
+                  </h3>
+                  <p className="text-sm text-slate-400">{wizard.summary}</p>
+                </div>
+                <button className="btn btn-outline text-xs">Launch Wizard</button>
+              </div>
+              <ol className="space-y-2 text-sm text-slate-300">
+                {wizard.steps.map((step, index) => (
+                  <li key={step} className="flex gap-2">
+                    <span className="text-slate-500">{index + 1}.</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           ))}
         </div>
       </div>
