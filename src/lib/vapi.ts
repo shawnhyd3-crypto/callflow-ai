@@ -1,0 +1,177 @@
+import axios from 'axios'
+
+if (!process.env.VAPI_API_KEY) {
+  throw new Error('Missing VAPI_API_KEY environment variable')
+}
+
+const vapiClient = axios.create({
+  baseURL: 'https://api.vapi.ai',
+  headers: {
+    'Authorization': `Bearer ${process.env.VAPI_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+})
+
+export interface VapiAssistantConfig {
+  name: string
+  model: {
+    provider: 'openai'
+    model: 'gpt-3.5-turbo' | 'gpt-4'
+    messages: Array<{
+      role: 'system' | 'user' | 'assistant'
+      content: string
+    }>
+  }
+  voice: {
+    provider: 'vapi'
+    voiceId: string
+  }
+  firstMessageMode?: 'speak-first' | 'assistant-speaks-first'
+  endCallMessage?: string
+  endCallPhrases?: string[]
+  maxDurationSeconds?: number
+  hipaaEnabled?: boolean
+  recordingEnabled?: boolean
+  clientMessages?: Array<'hang-up' | 'transcript' | 'tool-calls' | 'function-calls'>
+  serverMessages?: Array<'assistant-request' | 'end-of-call-report' | 'hang-up'>
+}
+
+export interface VapiPhoneNumberConfig {
+  phoneNumber: string
+  assistantId: string
+  name?: string
+  fallbackDestination?: string
+  squadId?: string
+}
+
+export async function createAssistant(config: VapiAssistantConfig) {
+  try {
+    const response = await vapiClient.post('/assistant', config)
+    return response.data
+  } catch (error) {
+    console.error('Error creating Vapi assistant:', error)
+    throw error
+  }
+}
+
+export async function updateAssistant(
+  assistantId: string,
+  config: Partial<VapiAssistantConfig>
+) {
+  try {
+    const response = await vapiClient.patch(`/assistant/${assistantId}`, config)
+    return response.data
+  } catch (error) {
+    console.error('Error updating Vapi assistant:', error)
+    throw error
+  }
+}
+
+export async function deleteAssistant(assistantId: string) {
+  try {
+    await vapiClient.delete(`/assistant/${assistantId}`)
+  } catch (error) {
+    console.error('Error deleting Vapi assistant:', error)
+    throw error
+  }
+}
+
+export async function getAssistant(assistantId: string) {
+  try {
+    const response = await vapiClient.get(`/assistant/${assistantId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching Vapi assistant:', error)
+    throw error
+  }
+}
+
+export async function listAssistants() {
+  try {
+    const response = await vapiClient.get('/assistant')
+    return response.data
+  } catch (error) {
+    console.error('Error listing Vapi assistants:', error)
+    throw error
+  }
+}
+
+export async function createPhoneNumber(config: VapiPhoneNumberConfig) {
+  try {
+    const response = await vapiClient.post('/phone-number', config)
+    return response.data
+  } catch (error) {
+    console.error('Error creating Vapi phone number:', error)
+    throw error
+  }
+}
+
+export async function deletePhoneNumber(phoneNumberId: string) {
+  try {
+    await vapiClient.delete(`/phone-number/${phoneNumberId}`)
+  } catch (error) {
+    console.error('Error deleting Vapi phone number:', error)
+    throw error
+  }
+}
+
+export async function getPhoneNumber(phoneNumberId: string) {
+  try {
+    const response = await vapiClient.get(`/phone-number/${phoneNumberId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching Vapi phone number:', error)
+    throw error
+  }
+}
+
+export async function listPhoneNumbers() {
+  try {
+    const response = await vapiClient.get('/phone-number')
+    return response.data
+  } catch (error) {
+    console.error('Error listing Vapi phone numbers:', error)
+    throw error
+  }
+}
+
+export async function makeCall(phoneNumber: string, assistantId: string) {
+  try {
+    const response = await vapiClient.post('/call/phone', {
+      phoneNumber,
+      assistantId,
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error making Vapi call:', error)
+    throw error
+  }
+}
+
+export async function getCall(callId: string) {
+  try {
+    const response = await vapiClient.get(`/call/${callId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error fetching Vapi call:', error)
+    throw error
+  }
+}
+
+export function verifyWebhookSignature(
+  signature: string,
+  timestamp: string,
+  body: string
+): boolean {
+  // Placeholder for Vapi webhook signature verification
+  // Implement according to Vapi documentation
+  return true
+}
+
+export const VAPI_VOICES = {
+  'aura-asteria-en': 'Asteria (Female, Friendly)',
+  'aura-orion-en': 'Orion (Male, Professional)',
+  'aura-lora-en': 'Lora (Female, Calm)',
+  'aura-shelby-en': 'Shelby (Female, Energetic)',
+  'aura-skylar-en': 'Skylar (Female, Warm)',
+}

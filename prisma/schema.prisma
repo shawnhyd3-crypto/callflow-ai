@@ -1,0 +1,247 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  organizations Organization[]
+
+  @@map("users")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  website     String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  owner           User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  phoneAgents     PhoneAgent[]
+  appointments    Appointment[]
+  callLogs        CallLog[]
+  subscriptions   Subscription[]
+  usageRecords    UsageRecord[]
+  phoneNumbers    PhoneNumber[]
+
+  @@map("organizations")
+}
+
+model PhoneAgent {
+  id              String   @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String?
+  status          String   @default("draft") // draft, active, inactive
+  templateId      String?
+  systemPrompt    String   @db.Text
+  voiceId         String   @default("aura-asteria-en") // Vapi voice ID
+  language        String   @default("en")
+  firstMessage    String   @default("Hi there! How can I help you today?")
+  endCallMessage  String   @default("Thank you for calling. Goodbye!")
+  vapiAssistantId String?  // Vapi assistant ID when deployed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Configuration
+  answerCalls     Boolean  @default(true)
+  bookAppointments Boolean @default(false)
+  answerFAQs      Boolean  @default(true)
+  routeUrgent     Boolean  @default(false)
+
+  // Limits
+  maxCallDuration Int      @default(600) // seconds
+  allowVoicemail  Boolean  @default(true)
+
+  // Relations
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  template        AgentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  callLogs        CallLog[]
+  appointments    Appointment[]
+
+  @@index([organizationId])
+  @@map("phone_agents")
+}
+
+model AgentTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  industry    String   // plumber, dentist, restaurant, salon, etc.
+  description String?
+  systemPrompt String  @db.Text
+  defaultVoiceId String @default("aura-asteria-en")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  phoneAgents PhoneAgent[]
+
+  @@map("agent_templates")
+}
+
+model CallLog {
+  id              String   @id @default(cuid())
+  organizationId  String
+  agentId         String
+  phoneNumber     String
+  duration        Int      // seconds
+  status          String   // completed, missed, voicemail
+  outcome         String?  // booked, handled, escalated, voicemail
+  transcript      String?  @db.Text
+  recordingUrl    String?
+  startTime       DateTime
+  endTime         DateTime
+  createdAt       DateTime @default(now())
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent           PhoneAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  appointmentId   String?
+
+  @@index([organizationId])
+  @@index([agentId])
+  @@index([startTime])
+  @@map("call_logs")
+}
+
+model Appointment {
+  id              String   @id @default(cuid())
+  organizationId  String
+  agentId         String
+  clientName      String
+  clientPhone     String
+  clientEmail     String?
+  service         String?
+  appointmentTime DateTime
+  notes           String?  @db.Text
+  status          String   @default("confirmed") // confirmed, cancelled, completed, noshow
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent           PhoneAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  callLogs        CallLog[]
+
+  @@index([organizationId])
+  @@index([agentId])
+  @@index([appointmentTime])
+  @@map("appointments")
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  organizationId  String   @unique
+  stripeCustomerId String  @unique
+  stripeSubscriptionId String?
+  plan            String   @default("starter") // starter, pro, enterprise
+  status          String   @default("active") // active, cancelled, past_due
+  currentPeriodStart DateTime
+  currentPeriodEnd DateTime
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model UsageRecord {
+  id              String   @id @default(cuid())
+  organizationId  String
+  minutesUsed     Int      @default(0)
+  minutesLimit    Int      @default(100) // depends on plan
+  billingPeriodStart DateTime
+  billingPeriodEnd DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("usage_records")
+}
+
+model PhoneNumber {
+  id              String   @id @default(cuid())
+  organizationId  String
+  phoneNumber     String   @unique
+  displayName     String?
+  status          String   @default("active") // active, inactive, pending
+  vapiPhoneNumberId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("phone_numbers")
+}
