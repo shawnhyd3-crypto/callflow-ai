@@ -10,6 +10,7 @@ export default function SignUpPage() {
     name: '',
     email: '',
     company: '',
+    referralCode: '',
     password: '',
     confirmPassword: '',
   })
@@ -43,6 +44,8 @@ export default function SignUpPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        company: formData.company,
+        referralCode: formData.referralCode || undefined,
       }),
     })
 
@@ -125,6 +128,19 @@ export default function SignUpPage() {
                 required
               />
             </div>
+          </div>
+
+          {/* Referral Code */}
+          <div>
+            <label className="label">Referral Code (optional)</label>
+            <input
+              type="text"
+              name="referralCode"
+              placeholder="FRIEND123"
+              value={formData.referralCode}
+              onChange={handleChange}
+              className="input"
+            />
           </div>
 
           {/* Password */}

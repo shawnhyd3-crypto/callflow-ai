@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { Phone, MessageSquare, Calendar, Zap, Users, TrendingUp, Shield, Clock, ArrowRight, Star, Check } from 'lucide-react'
+import { ReferralTracker } from '@/components/referral-tracker'
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950">
+      <ReferralTracker />
       {/* Ambient background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>

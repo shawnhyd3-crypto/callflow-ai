@@ -81,6 +81,9 @@ model Organization {
   logo        String?
   website     String?
   ownerId     String
+  referralCode String  @unique
+  referredBy   String?
+  referralCredits Int  @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -92,8 +95,25 @@ model Organization {
   subscriptions   Subscription[]
   usageRecords    UsageRecord[]
   phoneNumbers    PhoneNumber[]
+  referrals       Referral[]
 
   @@map("organizations")
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  organizationId String
+  code           String   @unique
+  clicks         Int      @default(0)
+  signups        Int      @default(0)
+  conversions    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("referrals")
 }
 
 model PhoneAgent {
