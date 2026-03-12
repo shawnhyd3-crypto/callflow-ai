@@ -89,6 +89,7 @@ export async function createCheckoutSession({
     cancel_url: cancelUrl,
     metadata: {
       organizationId,
+      plan,
     },
   })
 
