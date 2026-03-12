@@ -1,4 +1,5 @@
 import axios from 'axios'
+import crypto from 'crypto'
 
 if (!process.env.VAPI_API_KEY) {
   throw new Error('Missing VAPI_API_KEY environment variable')
@@ -159,13 +160,30 @@ export async function getCall(callId: string) {
 }
 
 export function verifyWebhookSignature(
-  signature: string,
-  timestamp: string,
-  body: string
+  signature: string | null,
+  body: string,
+  secret?: string
 ): boolean {
-  // Placeholder for Vapi webhook signature verification
-  // Implement according to Vapi documentation
-  return true
+  if (!secret) return true
+  if (!signature) return false
+
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex')
+
+  const normalized = signature.startsWith('sha256=')
+    ? signature.replace('sha256=', '')
+    : signature
+
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(normalized, 'utf8'),
+      Buffer.from(expected, 'utf8')
+    )
+  } catch {
+    return false
+  }
 }
 
 export const VAPI_VOICES = {

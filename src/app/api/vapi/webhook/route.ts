@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyWebhookSignature } from '@/lib/vapi'
 
 /**
  * Vapi Webhook Handler
@@ -7,14 +8,19 @@ import { prisma } from '@/lib/prisma'
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.text()
 
-    // Verify webhook signature (implement based on Vapi docs)
-    // const signature = request.headers.get('x-signature')
-    // if (!verifyWebhookSignature(signature, ...)) {
-    //   return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-    // }
+    const signature = request.headers.get('x-vapi-signature')
+    const secret = process.env.VAPI_WEBHOOK_SECRET
 
+    if (secret) {
+      const isValid = verifyWebhookSignature(signature, rawBody, secret)
+      if (!isValid) {
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+      }
+    }
+
+    const body = JSON.parse(rawBody)
     const { message, call, phoneNumber, transcript } = body
 
     console.log('Vapi webhook event:', {
