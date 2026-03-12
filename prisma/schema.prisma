@@ -122,6 +122,7 @@ model PhoneAgent {
   callLogs        CallLog[]
   appointments    Appointment[]
 
+  @@unique([organizationId, billingPeriodStart])
   @@index([organizationId])
   @@map("phone_agents")
 }
@@ -162,6 +163,7 @@ model CallLog {
   appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   appointmentId   String?
 
+  @@unique([organizationId, billingPeriodStart])
   @@index([organizationId])
   @@index([agentId])
   @@index([startTime])
@@ -187,6 +189,7 @@ model Appointment {
   agent           PhoneAgent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
   callLogs        CallLog[]
 
+  @@unique([organizationId, billingPeriodStart])
   @@index([organizationId])
   @@index([agentId])
   @@index([appointmentTime])
@@ -225,6 +228,7 @@ model UsageRecord {
   // Relations
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, billingPeriodStart])
   @@index([organizationId])
   @@map("usage_records")
 }
@@ -242,6 +246,7 @@ model PhoneNumber {
   // Relations
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, billingPeriodStart])
   @@index([organizationId])
   @@map("phone_numbers")
 }
