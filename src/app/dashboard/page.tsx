@@ -1,5 +1,6 @@
 import { Phone, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getActiveOrganization } from '@/lib/organizations'
 
 function formatDuration(seconds: number) {
   if (!seconds || Number.isNaN(seconds)) return '0m 0s'
@@ -20,7 +21,7 @@ function timeAgo(date: Date) {
 }
 
 export default async function DashboardPage() {
-  const org = await prisma.organization.findFirst()
+  const org = await getActiveOrganization()
   if (!org) {
     return (
       <div className="card">

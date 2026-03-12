@@ -1,5 +1,6 @@
 import { Download, Search } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getActiveOrganization } from '@/lib/organizations'
 
 const PAGE_SIZE = 20
 
@@ -37,7 +38,7 @@ export default async function CallsPage({
 }: {
   searchParams?: Record<string, string | string[] | undefined>
 }) {
-  const org = await prisma.organization.findFirst()
+  const org = await getActiveOrganization()
   if (!org) {
     return (
       <div className="card">
