@@ -3,12 +3,16 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { stripe, getPlanFromPriceId } from '@/lib/stripe'
 import { env } from '@/lib/env'
+import { rateLimit } from '@/lib/rate-limit'
 
 /**
  * Stripe Webhook Handler
  * Handles Stripe events: checkout.session.completed, customer.subscription.updated, etc.
  */
 export async function POST(request: NextRequest) {
+  const rateLimited = await rateLimit(request, 'webhook')
+  if (rateLimited) return rateLimited
+
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 

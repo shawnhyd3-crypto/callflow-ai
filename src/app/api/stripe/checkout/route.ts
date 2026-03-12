@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { stripe, createCheckoutSession } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/rate-limit'
+import { enforceCsrf } from '@/lib/security'
+
+const checkoutSchema = z.object({
+  organizationId: z.string().min(1),
+  plan: z.enum(['starter', 'pro', 'business']),
+  successUrl: z.string().url(),
+  cancelUrl: z.string().url(),
+})
 
 export async function POST(request: NextRequest) {
+  const rateLimited = await rateLimit(request, 'api')
+  if (rateLimited) return rateLimited
+
+  const csrf = enforceCsrf(request)
+  if (csrf) return csrf
+
   try {
-    const body = await request.json()
+    const body = checkoutSchema.parse(await request.json())
     const { organizationId, plan, successUrl, cancelUrl } = body
-
-    if (!organizationId || !plan || !successUrl || !cancelUrl) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-
-    if (!['starter', 'pro', 'business'].includes(plan)) {
-      return NextResponse.json(
-        { error: 'Invalid plan' },
-        { status: 400 }
-      )
-    }
 
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -56,6 +58,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid payload.' }, { status: 400 })
+    }
     console.error('Stripe checkout error:', error)
     return NextResponse.json(
       { error: 'Unable to create checkout session' },

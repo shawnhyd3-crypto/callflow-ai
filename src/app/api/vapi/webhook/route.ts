@@ -5,12 +5,16 @@ import { getUsageAlert } from '@/lib/usage'
 import { verifyWebhookSignature } from '@/lib/vapi'
 import { env } from '@/lib/env'
 import { publishLiveCallEvent } from '@/lib/vapi-live'
+import { rateLimit } from '@/lib/rate-limit'
 
 /**
  * Vapi Webhook Handler
  * Handles call events from Vapi (start, end, transcript, etc.)
  */
 export async function POST(request: NextRequest) {
+  const rateLimited = await rateLimit(request, 'webhook')
+  if (rateLimited) return rateLimited
+
   try {
     const rawBody = await request.text()
 
