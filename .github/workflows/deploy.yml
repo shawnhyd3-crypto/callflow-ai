@@ -26,6 +26,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Migration check (if DATABASE_URL provided)
+        if: ${{ secrets.DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate status
+
       - name: Deploy to Vercel
         if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
