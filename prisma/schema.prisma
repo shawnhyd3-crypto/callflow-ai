@@ -81,6 +81,7 @@ model Organization {
   logo        String?
   website     String?
   ownerId     String
+  plan        String   @default("starter")
   referralCode String  @unique
   referredBy   String?
   referralCredits Int  @default(0)

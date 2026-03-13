@@ -54,6 +54,7 @@ export async function POST(req: Request) {
           create: {
             name: body.company,
             slug,
+            plan: 'starter',
             referralCode,
             referredBy: referrer?.id,
             referrals: {

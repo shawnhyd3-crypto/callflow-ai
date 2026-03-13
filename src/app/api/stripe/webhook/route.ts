@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { stripe, getPlanFromPriceId } from '@/lib/stripe'
+import { stripe, getPlanFromPriceId, getPlanMinutesLimit } from '@/lib/stripe'
 import { env } from '@/lib/env'
 import { rateLimit } from '@/lib/rate-limit'
 
@@ -136,6 +136,30 @@ async function handleCheckoutSessionCompleted(
           },
         })
 
+        await prisma.organization.update({
+          where: { id: organizationId },
+          data: { plan },
+        })
+
+        await prisma.usageRecord.upsert({
+          where: {
+            organizationId_billingPeriodStart: {
+              organizationId,
+              billingPeriodStart: new Date(sub.current_period_start * 1000),
+            },
+          },
+          update: {
+            minutesLimit: getPlanMinutesLimit(plan as 'starter' | 'pro' | 'business'),
+            billingPeriodEnd: new Date(sub.current_period_end * 1000),
+          },
+          create: {
+            organizationId,
+            minutesLimit: getPlanMinutesLimit(plan as 'starter' | 'pro' | 'business'),
+            billingPeriodStart: new Date(sub.current_period_start * 1000),
+            billingPeriodEnd: new Date(sub.current_period_end * 1000),
+          },
+        })
+
         console.log(
           `Subscription created/updated for org ${organizationId}: ${sub.id}`
         )
@@ -174,6 +198,30 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription) {
             ? new Date(subscription.cancel_at * 1000)
             : null,
           plan,
+        },
+      })
+
+      await prisma.organization.update({
+        where: { id: org.organizationId },
+        data: { plan },
+      })
+
+      await prisma.usageRecord.upsert({
+        where: {
+          organizationId_billingPeriodStart: {
+            organizationId: org.organizationId,
+            billingPeriodStart: new Date(subscription.current_period_start * 1000),
+          },
+        },
+        update: {
+          minutesLimit: getPlanMinutesLimit(plan),
+          billingPeriodEnd: new Date(subscription.current_period_end * 1000),
+        },
+        create: {
+          organizationId: org.organizationId,
+          minutesLimit: getPlanMinutesLimit(plan),
+          billingPeriodStart: new Date(subscription.current_period_start * 1000),
+          billingPeriodEnd: new Date(subscription.current_period_end * 1000),
         },
       })
 

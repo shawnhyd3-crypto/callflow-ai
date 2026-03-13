@@ -20,6 +20,7 @@ const envSchema = z.object({
   STRIPE_PRO_METERED_PRICE_ID: z.string().optional(),
   STRIPE_BUSINESS_METERED_PRICE_ID: z.string().optional(),
   STRIPE_METERED_RATE_CENTS: z.coerce.number().optional(),
+  STRIPE_TRIAL_DAYS: z.coerce.number().optional(),
   POSTGRES_PRISMA_URL: z.string().min(1),
   ESTIMATED_APPOINTMENT_VALUE_CENTS: z.coerce.number().optional().default(0),
 })

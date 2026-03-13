@@ -48,12 +48,17 @@ export async function POST(request: NextRequest) {
       customerId = customer.id
     }
 
+    const trialDays = !existingSubscription
+      ? Number(process.env.STRIPE_TRIAL_DAYS ?? 14)
+      : undefined
+
     const session = await createCheckoutSession({
       organizationId,
       customerId,
       plan,
       successUrl,
       cancelUrl,
+      trialDays,
     })
 
     return NextResponse.json({ url: session.url })

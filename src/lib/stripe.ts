@@ -83,12 +83,14 @@ export async function createCheckoutSession({
   plan,
   successUrl,
   cancelUrl,
+  trialDays,
 }: {
   organizationId: string
   customerId: string
   plan: 'starter' | 'pro' | 'business'
   successUrl: string
   cancelUrl: string
+  trialDays?: number
 }) {
   const priceId = STRIPE_PLAN_PRICE_IDS[plan]
 
@@ -121,6 +123,11 @@ export async function createCheckoutSession({
       organizationId,
       plan,
     },
+    subscription_data: trialDays
+      ? {
+          trial_period_days: trialDays,
+        }
+      : undefined,
   })
 
   return session
