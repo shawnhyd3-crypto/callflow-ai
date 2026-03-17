@@ -30,6 +30,9 @@ yarn-error.log*
 .env.production.local
 .env.vercel
 
+# secrets
+paperclip-claimed-api-key.json
+
 # Prisma
 prisma/.env
 

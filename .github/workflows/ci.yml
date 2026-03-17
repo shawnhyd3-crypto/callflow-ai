@@ -23,8 +23,14 @@ jobs:
       - name: Prisma generate
         run: npm run generate
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
       - name: Lint
         run: npm run lint
+
+      - name: Tests
+        run: npm run test:ci
 
       - name: Build
         run: npm run build

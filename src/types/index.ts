@@ -96,6 +96,21 @@ export interface UsageRecord {
   updatedAt: Date
 }
 
+export interface AgentTemplate {
+  id: string
+  name: string
+  industry: string
+  description?: string | null
+  systemPrompt: string
+  greetingScript: string
+  faqKnowledgeBase: string
+  appointmentBookingLogic: string
+  escalationRules: string
+  defaultVoiceId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface DashboardStats {
   totalCalls: number
   avgCallDuration: number

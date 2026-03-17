@@ -25,29 +25,99 @@ async function main() {
   const templates = await Promise.all([
     prisma.agentTemplate.create({
       data: {
-        name: 'Plumbing',
-        industry: 'plumbing',
-        description: 'Perfect for plumbing services',
-        systemPrompt: `You are a professional receptionist for a plumbing company. You answer calls, book appointments, and answer common questions about plumbing services.`,
+        name: 'Plumber',
+        industry: 'plumber',
+        description: 'Prebuilt receptionist for plumbing services.',
+        systemPrompt: `You are a professional receptionist for a plumbing company. You answer calls, book appointments, and provide basic guidance on plumbing services.`,
+        greetingScript: `Thanks for calling {{company}} Plumbing. This is {{agent_name}}. How can I help you today?`,
+        faqKnowledgeBase: `Hours: Mon-Fri 8am-6pm, Sat 9am-2pm.
+Service area: Within 25 miles of the office.
+Pricing: Trip charge applies; estimates provided after assessment.
+Emergency service: Available 24/7 for burst pipes, flooding, or gas smell.
+Common services: Leak repair, drain cleaning, water heater install, fixture replacement.`,
+        appointmentBookingLogic: `Collect name, phone, address, issue summary. Offer next 3 available windows. Confirm a 2-hour arrival window and any access instructions. Send confirmation by SMS if provided.`,
+        escalationRules: `Escalate immediately for: burst pipe, flooding, sewage backup, gas smell, no water, or if caller requests emergency service. If after hours, mark as urgent and notify on-call tech.`,
         defaultVoiceId: 'aura-asteria-en',
       },
     }),
     prisma.agentTemplate.create({
       data: {
-        name: 'Dentistry',
-        industry: 'dentistry',
-        description: 'Perfect for dental practices',
+        name: 'Dentist',
+        industry: 'dentist',
+        description: 'Dental practice front-desk assistant.',
         systemPrompt: `You are a professional receptionist for a dental practice. You schedule appointments, answer questions about services, and handle patient inquiries.`,
+        greetingScript: `Thank you for calling {{company}} Dental. This is {{agent_name}}. How can I assist you today?`,
+        faqKnowledgeBase: `Hours: Mon-Thu 8am-5pm, Fri 8am-3pm.
+New patients: Please arrive 15 minutes early for forms.
+Insurance: We accept most major plans; verify specifics with billing.
+Services: Cleanings, fillings, crowns, whitening, emergencies.`,
+        appointmentBookingLogic: `Collect patient name, phone, email, and reason for visit. Offer next available times for hygiene vs. doctor visits. Confirm any insurance info and preferred reminders.`,
+        escalationRules: `Escalate for severe tooth pain, swelling, bleeding, broken tooth, or trauma. If after hours, advise ER for severe symptoms and flag urgent callback.`,
         defaultVoiceId: 'aura-lora-en',
+      },
+    }),
+    prisma.agentTemplate.create({
+      data: {
+        name: 'Salon',
+        industry: 'salon',
+        description: 'Hair and beauty salon appointment concierge.',
+        systemPrompt: `You are a friendly receptionist for a salon. You book appointments, answer service questions, and note stylist preferences.`,
+        greetingScript: `Hi! Thanks for calling {{company}} Salon. This is {{agent_name}}. What can I book for you today?`,
+        faqKnowledgeBase: `Hours: Tue-Sat 9am-7pm.
+Cancellation policy: 24-hour notice required.
+Services: Haircut, color, highlights, blowout, extensions.
+Pricing: Varies by stylist and service; quotes available with consultation.`,
+        appointmentBookingLogic: `Collect service type, stylist preference, date/time preferences, name, and phone. Offer stylist availability and confirm duration.`,
+        escalationRules: `Escalate if caller requests same-day complex color, bridal party booking, or a specific stylist not listed.`,
+        defaultVoiceId: 'aura-shelby-en',
       },
     }),
     prisma.agentTemplate.create({
       data: {
         name: 'Restaurant',
         industry: 'restaurant',
-        description: 'Perfect for restaurants',
+        description: 'Reservation and guest services assistant.',
         systemPrompt: `You are a reservation agent for a restaurant. You take reservations, answer questions about the menu, hours, and special events.`,
+        greetingScript: `Thank you for calling {{company}}. This is {{agent_name}}. Would you like to make a reservation?`,
+        faqKnowledgeBase: `Hours: Daily 11am-10pm.
+Large parties: 8+ guests require a deposit.
+Menu: Seasonal menu with vegetarian and gluten-free options.
+Parking: Street parking and nearby garage.`,
+        appointmentBookingLogic: `Collect name, party size, date/time, and phone. Offer available time slots and note special requests or allergies.`,
+        escalationRules: `Escalate for private events, parties of 10+, or VIP requests.`,
         defaultVoiceId: 'aura-shelby-en',
+      },
+    }),
+    prisma.agentTemplate.create({
+      data: {
+        name: 'Law Office',
+        industry: 'law_office',
+        description: 'Intake assistant for law firms.',
+        systemPrompt: `You are an intake assistant for a law office. You gather case details, schedule consultations, and handle client inquiries professionally.`,
+        greetingScript: `Thank you for calling {{company}} Law Office. This is {{agent_name}}. How can we help you today?`,
+        faqKnowledgeBase: `Hours: Mon-Fri 9am-5pm.
+Consultations: 30-minute initial consults.
+Practice areas: Family, real estate, small business, wills.
+Confidentiality: All inquiries are confidential.`,
+        appointmentBookingLogic: `Collect name, phone, email, case type, and preferred times. Offer consultation slots and explain required documents.`,
+        escalationRules: `Escalate for court deadlines within 7 days, police involvement, or if caller is distressed.`,
+        defaultVoiceId: 'aura-asteria-en',
+      },
+    }),
+    prisma.agentTemplate.create({
+      data: {
+        name: 'HVAC',
+        industry: 'hvac',
+        description: 'HVAC service scheduling assistant.',
+        systemPrompt: `You are a receptionist for an HVAC company. You book service calls, answer common questions, and prioritize urgent issues.`,
+        greetingScript: `Thanks for calling {{company}} Heating & Air. This is {{agent_name}}. How can I assist?`,
+        faqKnowledgeBase: `Hours: Mon-Fri 8am-6pm.
+Emergency service: Available for no-heat/no-cool situations.
+Services: Repair, maintenance, installation, seasonal tune-ups.
+Service area: Within 30 miles.`,
+        appointmentBookingLogic: `Collect name, phone, address, system type, and issue. Offer earliest appointment windows and confirm access instructions.`,
+        escalationRules: `Escalate for no heat in winter, no cooling in extreme heat, gas smells, or electrical burning odors.`,
+        defaultVoiceId: 'aura-orion-en',
       },
     }),
   ]);
