@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     const { type, score, comment, page } = body;
 
     // Get user's organization
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true },
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: session.user.id },
+      select: { id: true },
     });
 
-    if (!user?.organizationId) {
+    if (!org) {
       return NextResponse.json(
         { error: 'Organization not found' },
         { status: 404 }
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Create feedback record
     const feedback = await prisma.feedback.create({
       data: {
-        organizationId: user.organizationId,
+        organizationId: org.id,
         userId: session.user.id,
         type,
         score: type === 'nps' ? score : null,
@@ -60,12 +60,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { organizationId: true, role: true },
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: session.user.id },
+      select: { id: true },
     });
 
-    if (!user?.organizationId || user.role !== 'admin') {
+    if (!org) {
       return NextResponse.json(
         { error: 'Only admins can view feedback' },
         { status: 403 }
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     // Build filter
     const where: any = {
-      organizationId: user.organizationId,
+      organizationId: org.id,
     };
 
     if (type) {
