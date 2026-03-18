@@ -67,3 +67,21 @@ export const STRIPE_PLANS = {
 } as const
 
 export type StripePlan = keyof typeof STRIPE_PLANS
+
+
+export function getPlanMinutesLimit(plan: string): number {
+  switch (plan) {
+    case 'starter': return 100
+    case 'pro': return 500
+    case 'business': return 2000
+    default: return 100
+  }
+}
+
+export function getPlanFromPriceId(priceId: string): string | null {
+  const env = process.env
+  if (priceId === env.STRIPE_STARTER_PRICE_ID) return 'starter'
+  if (priceId === env.STRIPE_PRO_PRICE_ID) return 'pro'
+  if (priceId === env.STRIPE_BUSINESS_PRICE_ID) return 'business'
+  return null
+}

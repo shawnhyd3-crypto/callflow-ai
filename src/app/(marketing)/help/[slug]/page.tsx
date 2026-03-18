@@ -113,7 +113,6 @@ export default function HelpArticlePage({ params }: PageProps) {
               '--tw-prose-td-borders': '#334155',
               '--tw-prose-kbd': '#f1f5f9',
               '--tw-prose-kbd-shadows': '0 0 0 1px rgb(15 23 42 / var(--tw-space-divide-opacity))',
-              '--tw-prose-hr': '#334155',
               '--tw-prose-table': '#e2e8f0',
             } as React.CSSProperties}
           />
