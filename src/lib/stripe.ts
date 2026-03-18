@@ -1,9 +1,26 @@
 import Stripe from 'stripe'
 import { env } from '@/lib/env'
 
-export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-  typescript: true,
+let _stripe: Stripe | null = null
+
+export function getStripe(): Stripe {
+  if (!env.STRIPE_SECRET_KEY) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.')
+  }
+  if (!_stripe) {
+    _stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+      typescript: true,
+    })
+  }
+  return _stripe
+}
+
+// Keep backward compat — but will throw if Stripe not configured
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    return (getStripe() as any)[prop]
+  },
 })
 
 export const STRIPE_PLANS = {
@@ -47,102 +64,6 @@ export const STRIPE_PLANS = {
       '24/7 phone support',
     ],
   },
-}
+} as const
 
-export const STRIPE_PLAN_PRICE_IDS = {
-  starter: env.STRIPE_STARTER_PRICE_ID,
-  pro: env.STRIPE_PRO_PRICE_ID,
-  business: env.STRIPE_BUSINESS_PRICE_ID,
-}
-
-export const STRIPE_PLAN_METERED_PRICE_IDS = {
-  starter: env.STRIPE_STARTER_METERED_PRICE_ID,
-  pro: env.STRIPE_PRO_METERED_PRICE_ID,
-  business: env.STRIPE_BUSINESS_METERED_PRICE_ID,
-}
-
-export function getPlanFromPriceId(priceId?: string | null) {
-  if (!priceId) return null
-
-  const entries = Object.entries(STRIPE_PLAN_PRICE_IDS) as Array<[
-    'starter' | 'pro' | 'business',
-    string | undefined
-  ]>
-
-  const match = entries.find(([, id]) => id === priceId)
-  return match ? match[0] : null
-}
-
-export function getPlanMinutesLimit(plan: 'starter' | 'pro' | 'business') {
-  return STRIPE_PLANS[plan].minutesPerMonth
-}
-
-export async function createCheckoutSession({
-  organizationId,
-  customerId,
-  plan,
-  successUrl,
-  cancelUrl,
-  trialDays,
-}: {
-  organizationId: string
-  customerId: string
-  plan: 'starter' | 'pro' | 'business'
-  successUrl: string
-  cancelUrl: string
-  trialDays?: number
-}) {
-  const priceId = STRIPE_PLAN_PRICE_IDS[plan]
-
-  if (!priceId) {
-    throw new Error(`Missing Stripe price ID for plan: ${plan}`)
-  }
-
-  const meteredPriceId = STRIPE_PLAN_METERED_PRICE_IDS[plan]
-
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-    {
-      price: priceId,
-      quantity: 1,
-    },
-  ]
-
-  if (meteredPriceId) {
-    lineItems.push({
-      price: meteredPriceId,
-    })
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    line_items: lineItems,
-    mode: 'subscription',
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata: {
-      organizationId,
-      plan,
-    },
-    subscription_data: trialDays
-      ? {
-          trial_period_days: trialDays,
-        }
-      : undefined,
-  })
-
-  return session
-}
-
-export async function getCustomerSubscriptions(customerId: string) {
-  const subscriptions = await stripe.subscriptions.list({
-    customer: customerId,
-    limit: 100,
-  })
-
-  return subscriptions.data
-}
-
-export async function cancelSubscription(subscriptionId: string) {
-  const subscription = await stripe.subscriptions.cancel(subscriptionId)
-  return subscription
-}
+export type StripePlan = keyof typeof STRIPE_PLANS

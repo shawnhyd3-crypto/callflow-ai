@@ -1,12 +1,28 @@
-import axios from 'axios'
+import axios, { type AxiosInstance } from 'axios'
 import crypto from 'crypto'
 import { env } from '@/lib/env'
 
-const vapiClient = axios.create({
-  baseURL: 'https://api.vapi.ai',
-  headers: {
-    'Authorization': `Bearer ${env.VAPI_API_KEY}`,
-    'Content-Type': 'application/json',
+let _vapiClient: AxiosInstance | null = null
+
+function getVapiClient(): AxiosInstance {
+  if (!env.VAPI_API_KEY) {
+    throw new Error('Vapi is not configured. Set VAPI_API_KEY environment variable.')
+  }
+  if (!_vapiClient) {
+    _vapiClient = axios.create({
+      baseURL: 'https://api.vapi.ai',
+      headers: {
+        'Authorization': `Bearer ${env.VAPI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    })
+  }
+  return _vapiClient
+}
+
+const vapiClient = new Proxy({} as AxiosInstance, {
+  get(_, prop) {
+    return (getVapiClient() as any)[prop]
   },
 })
 
