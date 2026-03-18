@@ -85,3 +85,30 @@ export function getPlanFromPriceId(priceId: string): string | null {
   if (priceId === env.STRIPE_BUSINESS_PRICE_ID) return 'business'
   return null
 }
+
+
+export async function createCheckoutSession({
+  customerId,
+  priceId,
+  successUrl,
+  cancelUrl,
+  trialDays,
+}: {
+  customerId: string
+  priceId: string
+  successUrl: string
+  cancelUrl: string
+  trialDays?: number
+}) {
+  const s = getStripe()
+  const session = await s.checkout.sessions.create({
+    customer: customerId,
+    payment_method_types: ['card'],
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: 'subscription',
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    ...(trialDays ? { subscription_data: { trial_period_days: trialDays } } : {}),
+  })
+  return session
+}
