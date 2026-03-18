@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Get user's organization
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { organization: true },
+      include: { organizations: true },
     });
 
     if (!user?.organizationId) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Create phone agent
     const agent = await prisma.phoneAgent.create({
       data: {
-        organizationId: user.organizationId,
+        organizationId: user.organizations[0]Id,
         name: agentName,
         template: templateId,
         systemPrompt: `You are ${agentName}, a helpful assistant. ${greeting}`,
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Update organization
     await prisma.organization.update({
-      where: { id: user.organizationId },
+      where: { id: user.organizations[0]Id },
       data: {
         isOnboarded: true,
         industry,

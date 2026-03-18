@@ -178,7 +178,7 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription) {
     // Find the organization with this customer ID
     const org = await prisma.subscription.findFirst({
       where: { stripeCustomerId: customerId },
-      include: { organization: true },
+      include: { organizations: true },
     })
 
     if (org) {
