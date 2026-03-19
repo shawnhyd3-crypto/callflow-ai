@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import SessionProviderWrapper from '@/components/providers/session-provider'
+import { ToastProvider } from '@/components/ui/toast'
 
 const inter = Inter({
   variable: '--font-geist-sans',
@@ -59,9 +60,11 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${jetbrainsMono.variable} bg-slate-950 text-slate-100`}>
         <SessionProviderWrapper>
-          <div className="min-h-screen flex flex-col">
-            {children}
-          </div>
+          <ToastProvider>
+            <div className="min-h-screen flex flex-col">
+              {children}
+            </div>
+          </ToastProvider>
         </SessionProviderWrapper>
       </body>
     </html>
