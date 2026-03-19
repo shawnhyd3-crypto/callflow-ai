@@ -18,54 +18,63 @@ export async function POST(request: NextRequest) {
       templateId,
       agentName,
       greeting,
-      voice,
+      voiceId,
       answerCalls,
       bookAppointments,
-      faq,
-      urgentRouting,
+      answerFAQs,
+      routeUrgent,
     } = body;
 
     // Get user's organization
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { organizations: true },
+    const org = await prisma.organization.findFirst({
+      where: { ownerId: session.user.id },
     });
 
-    if (!user?.organizationId) {
+    if (!org) {
       return NextResponse.json(
         { error: 'Organization not found' },
         { status: 404 }
       );
     }
 
+    // Get template for system prompt
+    let systemPrompt = `You are ${agentName}, a helpful AI phone assistant.`;
+    if (templateId) {
+      const template = await prisma.agentTemplate.findUnique({
+        where: { id: templateId },
+      });
+      if (template) {
+        systemPrompt = template.systemPrompt;
+      }
+    }
+
     // Create phone agent
     const agent = await prisma.phoneAgent.create({
       data: {
-        organizationId: user.organizations[0]Id,
-        name: agentName,
-        template: templateId,
-        systemPrompt: `You are ${agentName}, a helpful assistant. ${greeting}`,
-        voice,
-        enabled: true,
-        greetingMessage: greeting,
-        config: {
-          answerCalls,
-          bookAppointments,
-          faq,
-          urgentRouting,
-        },
-        phoneNumber: '+1 (555) 123-4567', // Placeholder - assign real number in production
+        organizationId: org.id,
+        name: agentName || 'AI Receptionist',
+        description: `AI phone agent for ${businessName || org.name}`,
+        status: 'active',
+        templateId: templateId || undefined,
+        systemPrompt,
+        voiceId: voiceId || 'aura-asteria-en',
+        firstMessage: greeting || 'Hi there! How can I help you today?',
+        answerCalls: answerCalls ?? true,
+        bookAppointments: bookAppointments ?? false,
+        answerFAQs: answerFAQs ?? true,
+        routeUrgent: routeUrgent ?? false,
       },
     });
 
     // Update organization
     await prisma.organization.update({
-      where: { id: user.organizations[0]Id },
+      where: { id: org.id },
       data: {
         isOnboarded: true,
         industry,
         businessPhone,
         onboardedAt: new Date(),
+        ...(businessName ? { name: businessName } : {}),
       },
     });
 
@@ -75,7 +84,6 @@ export async function POST(request: NextRequest) {
         agent: {
           id: agent.id,
           name: agent.name,
-          phoneNumber: agent.phoneNumber,
         },
       },
       { status: 201 }
