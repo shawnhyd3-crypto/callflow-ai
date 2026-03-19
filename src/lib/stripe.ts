@@ -88,26 +88,45 @@ export function getPlanFromPriceId(priceId: string): string | null {
 
 
 export async function createCheckoutSession({
+  organizationId,
   customerId,
+  plan,
   priceId,
   successUrl,
   cancelUrl,
   trialDays,
 }: {
+  organizationId?: string
   customerId: string
-  priceId: string
+  plan?: string
+  priceId?: string
   successUrl: string
   cancelUrl: string
   trialDays?: number
 }) {
   const s = getStripe()
+  // Resolve priceId from plan name if not provided directly
+  let resolvedPriceId = priceId
+  if (!resolvedPriceId && plan) {
+    const planPriceMap: Record<string, string | undefined> = {
+      starter: process.env.STRIPE_STARTER_PRICE_ID,
+      pro: process.env.STRIPE_PRO_PRICE_ID,
+      business: process.env.STRIPE_BUSINESS_PRICE_ID,
+    }
+    resolvedPriceId = planPriceMap[plan]
+  }
+  if (!resolvedPriceId) {
+    throw new Error('No price ID resolved for checkout')
+  }
+
   const session = await s.checkout.sessions.create({
     customer: customerId,
     payment_method_types: ['card'],
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price: resolvedPriceId, quantity: 1 }],
     mode: 'subscription',
     success_url: successUrl,
     cancel_url: cancelUrl,
+    metadata: organizationId ? { organizationId } : undefined,
     ...(trialDays ? { subscription_data: { trial_period_days: trialDays } } : {}),
   })
   return session
