@@ -3,6 +3,9 @@ import { Phone, MessageSquare, Calendar, Zap, Users, TrendingUp, Shield, Clock, 
 import { ReferralTracker } from '@/components/referral-tracker'
 import { DemoCallWidget } from '@/components/demo-call-widget'
 
+export const dynamic = 'force-dynamic'
+
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950">
