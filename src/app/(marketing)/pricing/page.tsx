@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Metadata } from 'next'
 import Link from 'next/link'
 import { CheckCircle2, X } from 'lucide-react'
 
@@ -90,16 +89,6 @@ interface PricingPlan {
   features: string[]
   notIncluded: string[]
   cta: string
-}
-
-export const metadata: Metadata = {
-  title: 'Pricing | CallFlow AI',
-  description: 'Simple, transparent pricing for AI phone agents. Start at $49/month.',
-  openGraph: {
-    title: 'Pricing | CallFlow AI',
-    description: 'Simple, transparent pricing for AI phone agents. Start at $49/month.',
-    type: 'website',
-  },
 }
 
 export default function PricingPage() {
