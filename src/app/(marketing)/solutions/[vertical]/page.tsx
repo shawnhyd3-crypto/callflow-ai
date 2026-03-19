@@ -1,5 +1,3 @@
-'use client'
-
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
