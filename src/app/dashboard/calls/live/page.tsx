@@ -67,7 +67,8 @@ export default function LiveCallsPage() {
         if (!payload?.callId) return
 
         setCalls((prev) => {
-          const existing = prev[payload.callId] ?? {
+          const callId = payload.callId as string;
+          const existing = prev[callId] ?? {
             id: payload.callId as string,
             phoneNumber: payload.phoneNumber ?? null,
             transcript: '',
