@@ -94,7 +94,7 @@ export default function LiveCallsPage() {
 
           return {
             ...prev,
-            [payload.callId]: {
+            [callId]: {
               ...existing,
               phoneNumber: payload.phoneNumber ?? existing.phoneNumber,
               transcript,
