@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { AgentWizard } from '@/components/agent-wizard'
 
+export const dynamic = 'force-dynamic'
+
+
 export default async function NewAgentPage() {
   const organization = await prisma.organization.findFirst()
   const templates = await prisma.agentTemplate.findMany({

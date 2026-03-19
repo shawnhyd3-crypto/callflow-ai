@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { STRIPE_PLANS } from '@/lib/stripe'
 
+export const dynamic = 'force-dynamic'
+
+
 const PLAN_LABELS = {
   starter: 'Starter',
   pro: 'Growth',

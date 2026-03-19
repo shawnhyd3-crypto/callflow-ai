@@ -2,6 +2,9 @@ import { Phone, Clock, TrendingUp, AlertCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getActiveOrganization } from '@/lib/organizations'
 
+export const dynamic = 'force-dynamic'
+
+
 function formatDuration(seconds: number) {
   if (!seconds || Number.isNaN(seconds)) return '0m 0s'
   const mins = Math.floor(seconds / 60)

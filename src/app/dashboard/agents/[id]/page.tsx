@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
+
 export default async function AgentDetailPage({ params }: { params: { id: string } }) {
   const agent = await prisma.phoneAgent.findUnique({
     where: { id: params.id },

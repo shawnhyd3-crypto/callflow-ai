@@ -2,6 +2,9 @@ import { Download, Search } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getActiveOrganization } from '@/lib/organizations'
 
+export const dynamic = 'force-dynamic'
+
+
 const PAGE_SIZE = 20
 
 function formatDuration(seconds: number) {

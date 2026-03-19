@@ -2,6 +2,9 @@ import { stripe, STRIPE_PLANS } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { BillingActions } from '@/components/billing-actions'
 
+export const dynamic = 'force-dynamic'
+
+
 export default async function BillingPage() {
   const organization = await prisma.organization.findFirst()
   if (!organization) {

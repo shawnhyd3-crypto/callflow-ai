@@ -6,6 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { STRIPE_PLANS } from '@/lib/stripe'
 import { getImpersonatedOrganization } from '@/lib/organizations'
 
+export const dynamic = 'force-dynamic'
+
+
 const PLAN_ORDER = ['starter', 'pro', 'business'] as const
 
 type PlanKey = (typeof PLAN_ORDER)[number]

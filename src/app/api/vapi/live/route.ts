@@ -1,5 +1,8 @@
 import { subscribeToLiveCalls } from '@/lib/vapi-live'
 
+export const dynamic = 'force-dynamic'
+
+
 export async function GET(request: Request) {
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
