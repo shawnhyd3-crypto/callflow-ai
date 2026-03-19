@@ -185,7 +185,7 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription) {
       // Determine plan from subscription items
       const priceId = subscription.items.data[0]?.price?.id
       const mappedPlan = getPlanFromPriceId(priceId)
-      let plan: 'starter' | 'pro' | 'business' = mappedPlan || 'starter'
+      const plan = (mappedPlan || 'starter') as 'starter' | 'pro' | 'business'
 
       await prisma.subscription.update({
         where: { organizationId: org.organizationId },
